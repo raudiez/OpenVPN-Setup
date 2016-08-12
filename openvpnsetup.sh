@@ -18,15 +18,15 @@ do
 
 	case "${CHOICE}" in
 		01)
-			chmod +x install.sh
-			./install.sh
+			sudo chmod +x install.sh
+			sudo ./install.sh
 			askreboot
 		;;
 		02)
-			./MakeOVPN.sh
+			sudo ./MakeOVPN.sh
 		;;
 		03)
-			./remove.sh
+			sudo ./remove.sh
 			askreboot
 		;;
 		*)

@@ -9,15 +9,17 @@ else
  exit
 fi
 
+# Save the user who called sudo:
+REALUSER=$(who am i | awk '{print $1}')
+
 # Remove openvpn
-apt-get -y remove openvpn
+yum -y remove openvpn
 
 # Remove openvpn-related directories
-rm -r /etc/openvpn /home/pi/ovpns
+rm -r /etc/openvpn /home/$REALUSER/ovpns
 
 # Remove firewall script and reference to it in interfaces
 sed -i '/firewall-openvpn-rules.sh/d' /etc/rc.local
-sed -i 'sudo service openvpn start/d' /etc/rc.local
 rm /etc/firewall-openvpn-rules.sh
 
 # Disable IPv4 forwarding

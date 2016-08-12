@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if (whiptail --title "Setup OpenVPN" --yesno "You are about to configure your \
-Raspberry Pi as a VPN server running OpenVPN. Are you sure you want to \
+Centos as a VPN server running OpenVPN. Are you sure you want to \
 continue?" 8 78) then
  whiptail --title "Setup OpenVPN" --infobox "OpenVPN will be installed and \
  configured." 8 78
@@ -12,13 +12,15 @@ fi
 
 # Update packages and install openvpn
 echo "Updating, Upgrading, and Installing..."
-apt-get update
-apt-get -y upgrade
-apt-get -y install openvpn
-apt-get install easy-rsa
+yum clean expire-cache && yum check-update
+yum install epel-release
+yum install openvpn easy-rsa -y
+
+# Save the user who called sudo:
+REALUSER=$(who am i | awk '{print $1}')
 
 # Read the local and public IP addresses from the user
-LOCALIP=$(whiptail --inputbox "What is your Raspberry Pi's local IP address?" \
+LOCALIP=$(whiptail --inputbox "What is your Centos's local IP address?" \
 8 78 --title "Setup OpenVPN" 3>&1 1>&2 2>&3)
 exitstatus=$?
 if [ $exitstatus = 0 ]; then
@@ -29,7 +31,7 @@ else
 fi
 
 PUBLICIP=$(whiptail --inputbox "What is the public IP address of network the \
-Raspberry Pi is on?" 8 78 --title "OpenVPN Setup" 3>&1 1>&2 2>&3)
+Centos is on?" 8 78 --title "OpenVPN Setup" 3>&1 1>&2 2>&3)
 exitstatus=$?
 if [ $exitstatus = 0 ]; then
  whiptail --title "Setup OpenVPN" --infobox "PUBLIC IP: $PUBLICIP" 8 78
@@ -63,7 +65,7 @@ source ./vars
 ./clean-all
 
 # Build the certificate authority
-./build-ca < /home/pi/OpenVPN-Setup/ca_info.txt
+./build-ca < /home/$REALUSER/OpenVPN-Setup/ca_info.txt
 
 whiptail --title "Setup OpenVPN" --msgbox "You will now be asked for identifying \
 information for the server. Press 'Enter' to skip a field." 8 78
@@ -78,7 +80,7 @@ information for the server. Press 'Enter' to skip a field." 8 78
 openvpn --genkey --secret keys/ta.key
 
 # Write config file for server using the template .txt file
-sed 's/LOCALIP/'$LOCALIP'/' </home/pi/OpenVPN-Setup/server_config.txt >/etc/openvpn/server.conf
+sed 's/LOCALIP/'$LOCALIP'/' </home/$REALUSER/OpenVPN-Setup/server_config.txt >/etc/openvpn/server.conf
 if [ $ENCRYPT = 2048 ]; then
  sed -i 's:dh1024:dh2048:' /etc/openvpn/server.conf
 fi
@@ -86,26 +88,26 @@ fi
 # Enable forwarding of internet traffic
 sed -i '/#net.ipv4.ip_forward=1/c\
 net.ipv4.ip_forward=1' /etc/sysctl.conf
-sudo sysctl -p
+sysctl -p
 
 # Write script to run openvpn and allow it through firewall on boot using the template .txt file
-sed 's/LOCALIP/'$LOCALIP'/' </home/pi/OpenVPN-Setup/firewall-openvpn-rules.txt >/etc/firewall-openvpn-rules.sh
-sudo chmod 700 /etc/firewall-openvpn-rules.sh
-sudo chown root /etc/firewall-openvpn-rules.sh
+sed 's/LOCALIP/'$LOCALIP'/' </home/$REALUSER/OpenVPN-Setup/firewall-openvpn-rules.txt >/etc/firewall-openvpn-rules.sh
+chmod 700 /etc/firewall-openvpn-rules.sh
+chown root /etc/firewall-openvpn-rules.sh
 sed -i -e '$i \/etc/firewall-openvpn-rules.sh\n' /etc/rc.local
-sed -i -e '$i \sudo service openvpn start\n' /etc/rc.local
+systemcl enable openvpn@server.service
 
 # Write default file for client .ovpn profiles, to be used by the MakeOVPN script, using template .txt file
-sed 's/PUBLICIP/'$PUBLICIP'/' </home/pi/OpenVPN-Setup/Default.txt >/etc/openvpn/easy-rsa/keys/Default.txt
+sed 's/PUBLICIP/'$PUBLICIP'/' </home/$REALUSER/OpenVPN-Setup/Default.txt >/etc/openvpn/easy-rsa/keys/Default.txt
 
 # Make directory under home directory for .ovpn profiles
-mkdir /home/pi/ovpns
-chmod 777 -R /home/pi/ovpns
+mkdir /home/$REALUSER/ovpns
+chmod 777 -R /home/$REALUSER/ovpns
 
 # Make other scripts in the package executable
-cd /home/pi/OpenVPN-Setup
-sudo chmod +x MakeOVPN.sh
-sudo chmod +x remove.sh
+cd /home/$REALUSER/OpenVPN-Setup
+chmod +x MakeOVPN.sh
+chmod +x remove.sh
 
 whiptail --title "Setup OpenVPN" --msgbox "Configuration complete. Restart \
 system to apply changes and start VPN server." 8 78

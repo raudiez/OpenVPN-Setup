@@ -9,22 +9,14 @@ KEY=".3des.key"
 CA="ca.crt" 
 TA="ta.key" 
 
-#Ask for a Client name
-#NAME=$(whiptail --inputbox "Please enter a Name for the Client:" \
-#8 78 --title "MakeOVPN" 3>&1 1>&2 2>&3)
-#exitstatus=$?
-#if [ $exitstatus = 0 ]; then
-# whiptail --title "MakeOVPN" --infobox "Name: $NAME" 8 78
-#else
-# whiptail --title "MakeOVPN" --infobox "Cancelled" 8 78
-# exit
-#fi
+# Save the user who called sudo:
+REALUSER=$(who am i | awk '{print $1}')
 
 echo "Please enter a Name for the Client:"
 read NAME 
  
 #Build the client key and then encrypt the key
-sudo chmod 777 -R /etc/openvpn
+chmod 777 -R /etc/openvpn
 cd /etc/openvpn/easy-rsa
 source ./vars
 ./build-key-pass $NAME
@@ -36,14 +28,14 @@ if [ ! -f $NAME$CRT ]; then
  echo "[ERROR]: Client Public Key Certificate not found: $NAME$CRT" 
  exit 
 fi 
-echo "Client�s cert found: $NAME$CR" 
+echo "Client's cert found: $NAME$CR" 
  
 #Then, verify that there is a private key for that client 
 if [ ! -f $NAME$KEY ]; then 
  echo "[ERROR]: Client 3des Private Key not found: $NAME$KEY" 
  exit 
 fi 
-echo "Client�s Private Key found: $NAME$KEY"
+echo "Client's Private Key found: $NAME$KEY"
  
 #Confirm the CA public key exists 
 if [ ! -f $CA ]; then 
@@ -84,10 +76,10 @@ cat $TA >> $NAME$FILEEXT
 echo "</tls-auth>" >> $NAME$FILEEXT 
 
 # Copy the .ovpn profile to the home directory for convenient remote access
-cp /etc/openvpn/easy-rsa/keys/$NAME$FILEEXT /home/pi/ovpns/$NAME$FILEEXT
-sudo chmod 600 -R /etc/openvpn
+cp /etc/openvpn/easy-rsa/keys/$NAME$FILEEXT /home/$REALUSER/ovpns/$NAME$FILEEXT
+chmod 600 -R /etc/openvpn
 echo "$NAME$FILEEXT moved to home directory."
 whiptail --title "MakeOVPN" --msgbox "Done! $NAME$FILEEXT successfully created and \
-moved to directory /home/pi/ovpns." 8 78
+moved to directory /home/$REALUSER/ovpns." 8 78
  
 # Original script written by Eric Jodoin.

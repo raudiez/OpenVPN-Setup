@@ -28,7 +28,7 @@ tls-auth /etc/openvpn/easy-rsa/keys/ta.key 0
 cipher AES-128-CBC
 comp-lzo
 user nobody
-group nogroup
+group nobody
 persist-key
 persist-tun
 status /var/log/openvpn-status.log 20

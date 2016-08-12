@@ -48,7 +48,9 @@ of encryption:" 8 78 2 \
 3>&2 2>&1 1>&3)
 
 # Copy the easy-rsa files to a directory inside the new openvpn directory
-cp -r /usr/share/easy-rsa /etc/openvpn
+mkdir -p /etc/openvpn/easy-rsa/keys
+cp -rf /usr/share/easy-rsa/2.0/* /etc/openvpn/easy-rsa
+cp /etc/openvpn/easy-rsa/openssl-1.0.0.cnf /etc/openvpn/easy-rsa/openssl
 
 # Edit the EASY_RSA variable in the vars file to point to the new easy-rsa directory,
 # And change from default 1024 encryption if desired
@@ -86,8 +88,7 @@ if [ $ENCRYPT = 2048 ]; then
 fi
 
 # Enable forwarding of internet traffic
-sed -i '/#net.ipv4.ip_forward=1/c\
-net.ipv4.ip_forward=1' /etc/sysctl.conf
+echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
 systemctl restart network.service
 # Write script to run openvpn and allow it through firewall on boot using the template .txt file
 sed 's/LOCALIP/'$LOCALIP'/' </home/$REALUSER/OpenVPN-Setup/firewall-openvpn-rules.txt >/etc/firewall-openvpn-rules.sh

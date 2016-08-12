@@ -88,8 +88,7 @@ fi
 # Enable forwarding of internet traffic
 sed -i '/#net.ipv4.ip_forward=1/c\
 net.ipv4.ip_forward=1' /etc/sysctl.conf
-sysctl -p
-
+systemctl restart network.service
 # Write script to run openvpn and allow it through firewall on boot using the template .txt file
 sed 's/LOCALIP/'$LOCALIP'/' </home/$REALUSER/OpenVPN-Setup/firewall-openvpn-rules.txt >/etc/firewall-openvpn-rules.sh
 chmod 700 /etc/firewall-openvpn-rules.sh

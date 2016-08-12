@@ -87,6 +87,9 @@ if [ $ENCRYPT = 2048 ]; then
  sed -i 's:dh1024:dh2048:' /etc/openvpn/server.conf
 fi
 
+cd /etc/openvpn/easy-rsa/keys
+cp dh2048.pem ca.crt server.crt server.key /etc/openvpn
+
 # Enable forwarding of internet traffic
 echo 'net.ipv4.ip_forward=1' >> /etc/sysctl.conf
 systemctl restart network.service
@@ -95,7 +98,7 @@ sed 's/LOCALIP/'$LOCALIP'/' </home/$REALUSER/OpenVPN-Setup/firewall-openvpn-rule
 chmod 700 /etc/firewall-openvpn-rules.sh
 chown root /etc/firewall-openvpn-rules.sh
 sed -i -e '$i \/etc/firewall-openvpn-rules.sh\n' /etc/rc.local
-systemcl enable openvpn@server.service
+systemctl enable openvpn@server.service
 
 # Write default file for client .ovpn profiles, to be used by the MakeOVPN script, using template .txt file
 sed 's/PUBLICIP/'$PUBLICIP'/' </home/$REALUSER/OpenVPN-Setup/Default.txt >/etc/openvpn/easy-rsa/keys/Default.txt

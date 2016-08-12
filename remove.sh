@@ -23,9 +23,8 @@ sed -i '/firewall-openvpn-rules.sh/d' /etc/rc.local
 rm /etc/firewall-openvpn-rules.sh
 
 # Disable IPv4 forwarding
-sed -i '/net.ipv4.ip_forward=1/c\
-#net.ipv4.ip_forward=1' /etc/sysctl.conf
-sysctl -p
+sed -i '/net.ipv4.ip_forward=1/d' /etc/sysctl.conf
+systemctl restart network.service
 
 whiptail --title "Remove OpenVPN" --msgbox "OpenVPN has been removed and your \
 previous settings have been restored. Reboot to apply changes." 8 78
